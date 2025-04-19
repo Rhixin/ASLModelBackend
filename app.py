@@ -45,6 +45,7 @@ def handle_disconnect():
 @socketio.on('hand_data')
 def handle_hand_data(data):
     if model is None:
+        print("Data received:", data) 
         emit('prediction_error', {'error': 'Model not loaded. Please check server logs.'})
         return
         
