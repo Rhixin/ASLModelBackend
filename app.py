@@ -69,8 +69,11 @@ def handle_hand_data(data):
     freq = update_request_frequency()
     
     if model is None:
-     
-        emit('prediction_error', {'error': 'Model not loaded. Please check server logs'})
+        print(f"Data received (requests/sec: {freq})")
+        emit('prediction_error', {
+            'error': 'Model not loaded. Please check server logs.',
+            'request_frequency': freq
+        })
         return
         
     try:
