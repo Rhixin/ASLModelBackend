@@ -15,12 +15,15 @@ MODEL_PATH = 'gesture_clf.pkl'
 model = None
 
 if os.path.exists(MODEL_PATH):
+    # Modify your model loading section
     try:
         with open(MODEL_PATH, 'rb') as f:
             model = pickle.load(f)
         print(f"Model loaded successfully from {MODEL_PATH}")
     except Exception as e:
         print(f"Error loading model: {e}")
+        model = None
+        print("Running in test mode without model")
 else:
     print(f"Model file not found at {MODEL_PATH}")
 
@@ -76,5 +79,5 @@ def index():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
-    # Use socketio directly without gevent/eventlet
-    socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
+    # Remove the allow_unsafe_werkzeug parameter
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
