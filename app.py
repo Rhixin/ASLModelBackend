@@ -75,8 +75,5 @@ def index():
     return f"Hand tracking server running. Connected clients: {clients}. {status}"
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    # In development, you can use:
-    # socketio.run(app, debug=True, host='127.0.0.1', port=port)
-    # For production on Railway:
+    port = int(os.environ.get('PORT', 10000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port)
