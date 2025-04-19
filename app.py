@@ -70,7 +70,7 @@ def handle_hand_data(data):
     
     if model is None:
         print(f"Data received (requests/sec: {freq})")
-        emit('prediction_error', {
+        emit('prediction_result', {
             'error': 'Model not loaded. Please check server logs.',
             'request_frequency': freq
         })
