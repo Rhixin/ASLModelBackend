@@ -8,6 +8,35 @@ import os
 import tensorflow as tf
 from collections import deque
 
+# Define the EXACT ASLRecognizer class that was used to create the pickle file
+class ASLRecognizer:
+    def __init__(self, mean, std, label_encoder, feature_names):
+        self.mean = mean
+        self.std = std
+        self.label_encoder = label_encoder
+        self.feature_names = feature_names
+    
+    def predict(self, features, model):
+        """
+        Make a prediction using normalized features
+        
+        Args:
+            features: numpy array of features
+            model: loaded TensorFlow model
+        """
+        # Normalize the features
+        features_scaled = (features - self.mean) / self.std
+        
+        # Make prediction
+        prediction = model.predict(features_scaled.reshape(1, -1), verbose=0)
+        predicted_class = np.argmax(prediction, axis=1)[0]
+        confidence = float(prediction[0, predicted_class])
+        
+        # Convert back to label
+        predicted_label = self.label_encoder.inverse_transform([predicted_class])[0]
+        
+        return predicted_label, confidence
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -38,7 +67,7 @@ def load_model_and_recognizer():
     else:
         print(f"Model file not found at {MODEL_PATH}")
     
-    # Load recognizer
+    # Load recognizer with more detailed error reporting
     if os.path.exists(RECOGNIZER_PATH):
         try:
             with open(RECOGNIZER_PATH, 'rb') as f:
@@ -47,6 +76,8 @@ def load_model_and_recognizer():
             recognizer_loaded = True
         except Exception as e:
             print(f"Error loading recognizer: {e}")
+            import traceback
+            traceback.print_exc()  # Print the full stack trace
             recognizer = None
     else:
         print(f"Recognizer file not found at {RECOGNIZER_PATH}")
@@ -213,25 +244,13 @@ def handle_hand_data(data):
         # Convert to array in the correct order
         features_array = np.array([features_dict[name] for name in recognizer.feature_names])
         
-        # Normalize using the saved parameters
-        features_scaled = (features_array - recognizer.mean) / recognizer.std
-        
-        # Reshape for model input
-        features_scaled = features_scaled.reshape(1, -1)
-        
-        # Make prediction
-        raw_prediction = model.predict(features_scaled, verbose=0)
-        predicted_class = np.argmax(raw_prediction, axis=1)[0]
-        confidence = float(raw_prediction[0, predicted_class])
-        
-        # Get the predicted label
-        predicted_label = recognizer.label_encoder.inverse_transform([predicted_class])[0]
+        # Use the recognizer's predict method
+        predicted_label, confidence = recognizer.predict(features_array, model)
         
         # Prepare result
         result = {
             'prediction': predicted_label,
             'confidence': confidence,
-            'probabilities': raw_prediction[0].tolist(),
             'request_frequency': freq
         }
         
