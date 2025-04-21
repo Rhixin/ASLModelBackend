@@ -205,7 +205,7 @@ def handle_hand_data(data):
         start_time = time.time()
         
         # Get landmarks from client
-        landmarks_flat = np.array(data['landmarks'])
+        landmarks_flat = np.array(data)
         
         # Extract features
         features_dict = extract_features_from_landmarks(landmarks_flat)
